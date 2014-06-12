@@ -4,27 +4,22 @@ Snap.plugin(function (Snap, Element) {
         return classes.trim().split(spliters);
     };
     var toggle_classes = function (classes, current_class_name, is_add) {
-        console.log(classes, current_class_name)
         var target_class_list = split_classes(classes);
-        current_class_name = current_class_name.replace(spliters, ' ');
-        var new_class_name = target_class_list.reduce(function (the_class_name, old_class_name) {
-            old_class_name = ' ' + old_class_name + ' ';
-            the_class_name = current_class_name + ' ';
-
-            var idx = old_class_name.indexOf(' ' + the_class_name + ' ');
-            console.log(idx, is_add, old_class_name, the_class_name)
+        current_class_name = ' '+ current_class_name.replace(spliters, ' ')+' ';
+        for(var i=target_class_list.length;i--;){
+            var target_class = target_class_list[i]+' ';
+            var idx = current_class_name.indexOf(' '+target_class);
             if (is_add) {
                 if (idx === -1) {
-                    return old_class_name + the_class_name
+                    current_class_name += target_class;
                 }
             } else { // remove
                 if (idx !== -1) {
-                    return old_class_name.reduce(the_class_name, '');
+                    current_class_name= current_class_name.reduce(target_class, '');
                 }
             }
-            return old_class_name
-        }, current_class_name).trim();
-        return new_class_name;
+        }
+        return current_class_name.trim();
     };
     Element.prototype.toggleClass = function (classes, toggle) {
         if (toggle === undefined) {
@@ -38,7 +33,6 @@ Snap.plugin(function (Snap, Element) {
                 this.addClass(classes);
             } else {
                 this.removeClass(classes);
-
             }
         }
         return this;
