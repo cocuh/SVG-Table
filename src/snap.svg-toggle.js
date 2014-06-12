@@ -3,14 +3,16 @@ Snap.plugin(function (Snap, Element) {
     var split_classes = function (classes) {
         return classes.trim().split(spliters);
     };
-    var toggle_classes = function (classes, class_name, is_add) {
-        var class_list = split_classes(classes);
-        class_name = class_name.replace(spliters, ' ');
-        var new_class_name = class_list.reduce(function (old_class_name, the_class_name) {
+    var toggle_classes = function (classes, current_class_name, is_add) {
+        console.log(classes, current_class_name)
+        var target_class_list = split_classes(classes);
+        current_class_name = current_class_name.replace(spliters, ' ');
+        var new_class_name = target_class_list.reduce(function (the_class_name, old_class_name) {
             old_class_name = ' ' + old_class_name + ' ';
-            the_class_name = class_name + ' ';
+            the_class_name = current_class_name + ' ';
 
             var idx = old_class_name.indexOf(' ' + the_class_name + ' ');
+            console.log(idx, is_add, old_class_name, the_class_name)
             if (is_add) {
                 if (idx === -1) {
                     return old_class_name + the_class_name
@@ -21,7 +23,7 @@ Snap.plugin(function (Snap, Element) {
                 }
             }
             return old_class_name
-        }, class_name).trim();
+        }, current_class_name).trim();
         return new_class_name;
     };
     Element.prototype.toggleClass = function (classes, toggle) {
@@ -39,20 +41,25 @@ Snap.plugin(function (Snap, Element) {
 
             }
         }
+        return this;
     };
     Element.prototype.addClass = function (classes) {
         this.node.className.baseVal = toggle_classes(classes, this.node.className.baseVal, true)
+        return this;
     };
 
     Element.prototype.removeClass = function (classes) {
         this.node.className.baseVal = toggle_classes(classes, this.node.className.baseVal, false)
+        return this;
     };
 
     Element.prototype.show = function () {
         this.attr('display', '');
+        return this;
     };
     Element.prototype.hide = function () {
         this.attr('display', 'none');
+        return this;
     };
     Element.prototype.toggle = function (toggle) {
         if (toggle == undefined) {
@@ -60,5 +67,6 @@ Snap.plugin(function (Snap, Element) {
         }
         toggle = toggle ? '' : 'none';
         this.attr('display', toggle)
+        return this;
     }
 });
