@@ -4,13 +4,16 @@ SVG-Table
 responsive dynamic svg table generation, with snap.svg and jquery.
 
 # Note
-## Snap.svg Plugin (snap.svg-toggle.js)
+## Snap.svg Plugin
+This library includes plugins for snap.svg. Those plugins add following methods.
+### snap.svg-toggle.js  
 
-This library includes plugin(`snap.svg-toggle.js`) for snap.svg. The plugin adds following methods.  
+- Element.addClass(classes)
+- Element.toggleClass(classes[, toggle])
+- Element.removeClass(classes)
+- Element.show()
+- Element.hide()
+- Element.toggle(toggle)
 
-- Element.addClass
-- Element.toggleClass
-- Element.removeClass
-- Element.show
-- Element.hide
-- Element.toggle
+### snap.svg-css.js
+- Element.css(key[, value])
