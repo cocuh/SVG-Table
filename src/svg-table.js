@@ -322,7 +322,10 @@ SVGTable = function (root_width, root_height, input_options) {
                     text_offsetY = args.cell_text_offset === null ? 0 : args.cell_text_offset[1];
                 that.texts[col][row] = cell_root.text(offsetX + text_offsetX, offsetY + text_offsetY, text)
                     .disableUserSelect();
-                offsetY += get_height(col, row);
+                if(args.cell_hook !== null){
+                    args.cell_hook(cell_root);
+                }
+                offsetY += h;
             }
             offsetX += w;
         }
