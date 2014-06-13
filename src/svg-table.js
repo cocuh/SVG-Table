@@ -3,8 +3,8 @@ SVGTable = function (root_width, root_height, i_options) {
     // - selecting : selecting
     // - 
     var DEFAULTS = {
-        cell_text: null // list(list(str))[col][row]
-        , cell_text_is_row_col: false // set true if cell_text list(list(str))[row][col]
+        cell_texts: null // list(list(str))[col][row]
+        , cell_texts_is_row_col: false // set true if cell_texts list(list(str))[row][col]
         , cell_text_offset: [10, 23] //
         //--- rows
         , row_num: null // int : if cell_heights is not null, equal divide
@@ -319,14 +319,14 @@ SVGTable = function (root_width, root_height, i_options) {
                 that.cells[col][row] = cell_root;
                 h = get_height(col, row);
                 text = (function(){
-                    if(args.cell_text === null){
+                    if(args.cell_texts === null){
                         return "";
                     }
-                    if(args.cell_text_is_row_col){
-                        return args.cell_text[row][col];
+                    if(args.cell_texts_is_row_col){
+                        return args.cell_texts[row][col];
                     }
-                    return args.cell_text[col][row];
-                })
+                    return args.cell_texts[col][row];
+                })();
                 cell_root.rect(offsetX, offsetY, w, h);
                 var text_offsetX = args.cell_text_offset === null ? 0 : args.cell_text_offset[0],
                     text_offsetY = args.cell_text_offset === null ? 0 : args.cell_text_offset[1];
