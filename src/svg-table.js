@@ -36,7 +36,7 @@ SVGTable = function (root_width, root_height, i_options) {
 
         //-- advance
         , CLASSES: {} // css classes
-        ,SELECT_MODE_DICT: {} // (function (cell, col, row, status) -> bool)[str]
+        , SELECT_MODE_DICT: {} // (function (cell, col, row, status) -> bool)[str]
         , select_cell: null // func : is_active_cell(cell, col, row, status)
         , cell_hook: null // func : hook(cell_elem)
     };
@@ -51,7 +51,7 @@ SVGTable = function (root_width, root_height, i_options) {
         row_name: 'row_name',
         column_name: 'column_name'
     };
-    
+
     var SELECT_MODE_DICT = {  // select mode dictionary
         'rectangle': function (cell, col, row, status) {
             var min_col = Math.min(status.start_col, status.end_col);
@@ -115,7 +115,7 @@ SVGTable = function (root_width, root_height, i_options) {
         }
     };
     var _is_in_select = null;
-    
+
     this.set_select_mode = function (select_mode) {
         _is_in_select = SELECT_MODE_DICT[select_mode]
     };
@@ -344,10 +344,20 @@ SVGTable = function (root_width, root_height, i_options) {
             offsetX += w;
         }
     })();
+    
+    
+    this.get_active_cells = function () {
+        var active_cells = [];
+        for (var col = 0; col < this.cells.length; col++) {
+            for (var row = 0; row < this.cells[col].length; row++) {
+                if (this.cells[col][row].hasClass(CLASSES.active)) {
+                    active_cells.push(this.cells[col][row]);
+                }
+            }
+        }
+        return active_cells;
+    };
 };
 SVGTable.prototype.get_root_elem = function () {
     return this.table_root.get(0);
-};
-SVGTable.prototype.get_active_cells = function () {
-
 };
