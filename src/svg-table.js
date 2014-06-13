@@ -6,12 +6,12 @@ SVGTable = function (root_width, root_height, input_options) {
         cell_text: null // list(list(str))
         , cell_text_offset: [10, 23]
         // rows
-        , row_num: 4 // int : if cell_heights is null, equal divide
+        , row_num: null // int : if cell_heights is not null, equal divide
         , cell_heights: null // list(list(int)) or null : if cell_heights is null, equal divide
         , cell_heights_is_ratio: null // if true, cell_heights use as ratio ( the_cell_height[y][x] = cell_heights[y][x]/sum(cell_heights[y]))
 
         // columns
-        , column_num: 4 // int : if cell_heights is null, equal divide
+        , column_num: null  // int : if cell_heights is not null, equal divide
         , column_widths: null // list(int) or null : if cell_heights is null, equal divide
         , column_widths_is_ratio: null // bool : if true, cell_heights use as ratio ( the_cell_height[y][x] = cell_heights[y][x]/sum(cell_heights[y]
 
@@ -23,7 +23,7 @@ SVGTable = function (root_width, root_height, input_options) {
         , row_name_text_offset: null // (int, int) : (offsetX, offsetY)
         , row_name_cell_width: 0, horizontal_scale_list: null //list(int) : the int is absolute y position regardless of cell_height_is_ratio
         , vertical_scale_list: null //list(int) : the int is absolute y position regardless of cell_height_is_ratio
-        , select_mode: 'horizontal' //bool or null : if null, you can define is_active_cell
+        , select_mode: 'horizontal' //string : 
 
         // active
         , CLASSES: {} // css classes
@@ -76,7 +76,7 @@ SVGTable = function (root_width, root_height, input_options) {
             // TODO
         },
         'horizontal': function (cell, col, row, status) {
-            var column_num = args.column_num;
+            var column_num = args.column_num===null?args.column_widths.length:args.column_num;
             var x = col + row * column_num;
             var i = status.start_col + status.start_row * column_num;
             var j = status.end_col + status.end_row * column_num;
@@ -130,12 +130,14 @@ SVGTable = function (root_width, root_height, input_options) {
             switch (event.type) {
                 case 'mousedown':
                     save_status_start();
+                    save_status_end();
+                    actions.toggle_class(CLASSES.selecting, status, true);
                     break;
                 case 'mouseover':
                     save_status_end();
                     actions.clear_selecting();
                     if (event.buttons != 0 && event.which % 2 != 0) {
-                        actions.toggle_class(CLASSES.selecting, status, true)
+                        actions.toggle_class(CLASSES.selecting, status, true);
                     }
                     break;
                 case 'mouseup':
@@ -183,14 +185,22 @@ SVGTable = function (root_width, root_height, input_options) {
     (function () {
         var get_width = args.column_num === null ?
             function (col) {
-                return args.column_widths[col];
+                return args.column_widths_is_ratio
+                    ? args.column_widths[col] * root_width / args.column_widths.reduce(function (p, n) {
+                    return p + n;
+                })
+                    : args.column_widths[col];
             } :
             function (col) {
                 return (root_width - args.row_name_cell_width) / args.column_num;
             };
         var get_height = args.row_num === null ?
             function (col, row) {
-                return args.cell_heights[col][row];
+                return args.cell_heights_is_ratio
+                    ? args.cell_heights[col][row] * root_height / args.cell_heights[col].reduce(function (p, n) {
+                    return p + n
+                })
+                    : args.cell_heights[col][row];
             } :
             function (col, row) {
                 return (root_height - args.column_name_cell_height) / args.row_num;
@@ -211,7 +221,8 @@ SVGTable = function (root_width, root_height, input_options) {
         };
 
         var offsetX = 0, h, w, text, col_root, cell_root;
-        for (var col = 0; col < args.column_num; col++) {
+        var column_num = args.column_num === null ? args.column_widths.length : args.column_num
+        for (var col = 0; col < column_num; col++) {
             var row_num = args.row_num === null ? args.cell_heights[col].length : args.row_num;
             var offsetY = 0;
             w = get_width(col);
