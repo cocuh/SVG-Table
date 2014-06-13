@@ -2,6 +2,14 @@ SVG-Table
 =========
 
 responsive dynamic svg table generator, with snap.svg and jquery.
+# requirements
+I tested following versions.
+
+- Snap.svg
+    - v0.2.0
+- jquery
+    - v1.11.1
+    - v2.1.1
 
 # Note
 ## Snap.svg Plugin
