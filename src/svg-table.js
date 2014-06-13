@@ -1,4 +1,4 @@
-SVGTable = function (root_width, root_height, input_options) {
+SVGTable = function (root_width, root_height, i_options) {
     // classes
     // - selecting : selecting
     // - 
@@ -54,7 +54,7 @@ SVGTable = function (root_width, root_height, input_options) {
     // extend args d:jquery
     var args = (function () {
         var options = $.extend(true, {}, DEFAULTS);
-        $.extend(true, options, input_options);
+        $.extend(true, options, i_options);
         return options;
     })();
 
