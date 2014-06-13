@@ -48,7 +48,7 @@ Snap.plugin(function (Snap, Element) {
     };
     Element.prototype.hasClass = function(the_class){
         the_class = ' '+the_class + ' ';
-        class_name = ' '+ this.node.className.baseVal + ' ';
+        var class_name = ' '+ this.node.className.baseVal + ' ';
         return class_name.indexOf(the_class) != -1;
     };
 
