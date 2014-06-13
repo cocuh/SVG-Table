@@ -36,6 +36,7 @@ SVGTable = function (root_width, root_height, i_options) {
 
         //-- advance
         , CLASSES: {} // css classes
+        ,SELECT_MODE_DICT: {} // (function (cell, col, row, status) -> bool)[str]
         , select_cell: null // func : is_active_cell(cell, col, row, status)
         , cell_hook: null // func : hook(cell_elem)
     };
@@ -50,6 +51,33 @@ SVGTable = function (root_width, root_height, i_options) {
         row_name: 'row_name',
         column_name: 'column_name'
     };
+    
+    var SELECT_MODE_DICT = {  // select mode dictionary
+        'rectangle': function (cell, col, row, status) {
+            var min_col = Math.min(status.start_col, status.end_col);
+            var max_col = Math.max(status.start_col, status.end_col);
+            var min_row = Math.min(status.start_row, status.end_row);
+            var max_row = Math.max(status.start_row, status.end_row);
+            return (
+                (min_col <= col && col <= max_col) &&
+                (min_row <= row && row <= max_row)
+                )
+        },
+        'horizontal': function (cell, col, row, status) {
+            var column_num = args.column_num === null ? args.column_widths.length : args.column_num;
+            var x = col + row * column_num;
+            var i = status.start_col + status.start_row * column_num;
+            var j = status.end_col + status.end_row * column_num;
+            return ((i <= x && x <= j) || (j <= x && x <= i));
+        },
+        'vertical': function (cell, col, row, status) {
+            var row_num = args.row_num;
+            var x = col * row_num + row;
+            var i = status.start_col * row_num + status.start_row;
+            var j = status.end_col * row_num + status.end_row;
+            return ((i <= x && x <= j) || (j <= x && x <= i));
+        }
+    };
 
 
     // extend args d:jquery
@@ -62,6 +90,7 @@ SVGTable = function (root_width, root_height, i_options) {
 
     // args
     $.extend(true, CLASSES, args.CLASSES);
+    $.extend(true, SELECT_MODE_DICT, args.SELECT_MODE_DICT);
     this.options = args;
 
 
@@ -86,34 +115,9 @@ SVGTable = function (root_width, root_height, i_options) {
         }
     };
     var _is_in_select = null;
+    
     this.set_select_mode = function (select_mode) {
-        _is_in_select = {  // select mode dictionary
-            null: args.activate_cell,//
-            'rectangle': function (cell, col, row, status) {
-                var min_col = Math.min(status.start_col, status.end_col);
-                var max_col = Math.max(status.start_col, status.end_col);
-                var min_row = Math.min(status.start_row, status.end_row);
-                var max_row = Math.max(status.start_row, status.end_row);
-                return (
-                    (min_col <= col && col <= max_col) &&
-                    (min_row <= row && row <= max_row)
-                    )
-            },
-            'horizontal': function (cell, col, row, status) {
-                var column_num = args.column_num === null ? args.column_widths.length : args.column_num;
-                var x = col + row * column_num;
-                var i = status.start_col + status.start_row * column_num;
-                var j = status.end_col + status.end_row * column_num;
-                return ((i <= x && x <= j) || (j <= x && x <= i));
-            },
-            'vertical': function (cell, col, row, status) {
-                var row_num = args.row_num;
-                var x = col * row_num + row;
-                var i = status.start_col * row_num + status.start_row;
-                var j = status.end_col * row_num + status.end_row;
-                return ((i <= x && x <= j) || (j <= x && x <= i));
-            }
-        }[select_mode]
+        _is_in_select = SELECT_MODE_DICT[select_mode]
     };
     this.set_select_mode(args.select_mode);
 
@@ -309,12 +313,12 @@ SVGTable = function (root_width, root_height, i_options) {
             w = get_width(col);
             that.cells[col] = new Array(row_num);
             that.texts[col] = new Array(row_num);
-            col_root = that.cells_root.group().transform('translate('+offsetX+')');
+            col_root = that.cells_root.group().transform('translate(' + offsetX + ')');
             for (var row = 0; row < row_num; row++) {
                 var handler = event_handler_factory(col, row);
                 cell_root = col_root.group()
                     .addClass(CLASSES.table).addClass(CLASSES.cell)
-                    .transform('translate(0,'+offsetY+')')
+                    .transform('translate(0,' + offsetY + ')')
                     .data('col', col).data('row', row)
                     .mousedown(handler).mouseover(handler).mouseup(handler);
                 that.cells[col][row] = cell_root;
