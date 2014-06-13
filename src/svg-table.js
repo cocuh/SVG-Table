@@ -92,6 +92,13 @@ SVGTable = function (root_width, root_height, i_options) {
     $.extend(true, CLASSES, args.CLASSES);
     $.extend(true, SELECT_MODE_DICT, args.SELECT_MODE_DICT);
     this.options = args;
+    
+    if(args.row_num === null && args.row_heights === null && args.cell_heights === null){
+        throw "row length is not defined, add option (row_num or row_heights or cell_heights)"
+    } 
+    if(args.column_num === null && args.column_widths === null){
+        throw "column length is not defined, add option (column_num or column_width)"
+    } 
 
 
     // init root object d:jquery
