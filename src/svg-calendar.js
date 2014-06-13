@@ -134,6 +134,8 @@ SVGCalendar = function (root_width, root_height, i_options) {
         var delta = cell_elem.data('row')*7+cell_elem.data('col');
         var date = new Date(table_start_date.getTime()+delta*24*60*60*1000);
         
+        cell_elem.data('date', date.getDate()).data('month', date.getMonth()).data('time',date.getTime());
+        
         cell_elem.addClass([CLASSES.even_month,CLASSES.odd_month][date.getMonth()%2]);
         if(date.getDay()==6 ||date.getDay()==0){
             cell_elem.addClass(CLASSES.holiday);
@@ -160,4 +162,13 @@ SVGCalendar = function (root_width, root_height, i_options) {
 
 SVGCalendar.prototype.get_root_elem = function () {
     return this.table.get_root_elem();
+};
+SVGCalendar.prototype.get_active_dates = function(){
+    var active_cells = this.table.get_active_cells();
+    var active_dates = [];
+    for(var i=active_cells.length;i--;){
+        var date = new Date(active_cells[i].data('time'));
+        active_dates.push(date)
+    }
+    return active_dates;
 };
