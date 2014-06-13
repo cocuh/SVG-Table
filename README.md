@@ -1,7 +1,7 @@
 SVG-Table
 =========
 
-responsive dynamic svg table generation, with snap.svg and jquery.
+responsive dynamic svg table generator, with snap.svg and jquery.
 
 # Note
 ## Snap.svg Plugin
