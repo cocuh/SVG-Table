@@ -7,7 +7,9 @@ SVGTable = function (root_width, root_height, input_options) {
         , cell_text_offset: [10, 23]
         //--- rows
         , row_num: null // int : if cell_heights is not null, equal divide
-        , cell_heights: null // list(list(int)) or null : if cell_heights is null, equal divide
+        , row_heights: null // list(int) : active when row_num is null
+        , row_heights_is_ratio: null // if true, row_heights use as ratio ( the_cell_height[y][x] = row_heights[y][x]/sum(row_heights[y]))
+        , cell_heights: null // list(list(int)) or null : active when both row_num and row_heights is null
         , cell_heights_is_ratio: null // if true, cell_heights use as ratio ( the_cell_height[y][x] = cell_heights[y][x]/sum(cell_heights[y]))
 
         //--- columns
@@ -40,7 +42,12 @@ SVGTable = function (root_width, root_height, input_options) {
     var that = this;
 
     var CLASSES = {
-        selecting: 'selecting', active: 'active', cell: 'svg_cell', table: 'svg_table', row_name: 'row_name', column_name: 'column_name'
+        selecting: 'selecting',
+        active: 'active',
+        cell: 'svg_cell',
+        table: 'svg_table',
+        row_name: 'row_name',
+        column_name: 'column_name'
     };
 
 
@@ -108,7 +115,7 @@ SVGTable = function (root_width, root_height, input_options) {
         }[select_mode]
     };
     this.set_select_mode(args.select_mode);
-    
+
     actions.toggle_class = function (class_name, status, is_add) {
         if (is_add === undefined) {
             is_add = !that.cells[status.start_col][status.start_row].hasClass(class_name);
@@ -255,23 +262,47 @@ SVGTable = function (root_width, root_height, input_options) {
             function (col) {
                 return (root_width - args.row_name_width) / args.column_num;
             };
-        var get_height = args.row_num === null ?
-            function (col, row) {
-                return args.cell_heights_is_ratio
-                    ? args.cell_heights[col][row] * root_height / args.cell_heights[col].reduce(function (p, n) {
-                    return p + n
-                })
-                    : args.cell_heights[col][row];
-            } :
-            function (col, row) {
-                return (root_height - args.column_name_height) / args.row_num;
-            };
+        var get_height = (function () {
+            if (args.row_num !== null) {
+                return function (col, row) {
+                    return (root_height - args.column_name_height) / args.row_num;
+                }
+            }
+            if (args.row_heights !== null) { // args.row_heights is active
+                if (args.row_heights_is_ratio) {
+                    return function (col, row) {
+                        var height_sum = args.row_heights.reduce(function (p, n) {
+                            return p + n
+                        });
+                        return args.row_heights[row] * (root_height - args.column_name_height) / height_sum;
+                    }
+                } else {
+                    return function (col, row) {
+                        return args.row_heights[row];
+                    }
+                }
+            } else { // args.cell_heigts is active
+                if (args.cell_heights_is_ratio) {
+                    return function (col, row) {
+                        var height_sum = args.cell_heights[col].reduce(function (p, n) {
+                            return p + n
+                        });
+                        return args.cell_heights[col][row] * (root_height - args.column_name_height) / height_sum;
+                    }
+                } else {
+                    return function (col, row) {
+                        return args.cell_heights[col][row];
+                    }
+                }
+            }
+        })();
+
 
         var offsetX, offsetY, h, w, text, col_root, cell_root;
         offsetX = args.row_name_list === null ? 0 : args.row_name_width;
         var column_num = args.column_num === null ? args.column_widths.length : args.column_num
         for (var col = 0; col < column_num; col++) {
-            var row_num = args.row_num === null ? args.cell_heights[col].length : args.row_num;
+            var row_num = args.row_num === null ? (args.row_heights===null? args.cell_heights[col].length:args.row_heights.length) : args.row_num;
             offsetY = args.column_name_list === null ? 0 : args.column_name_height;
             w = get_width(col);
             that.cells[col] = new Array(row_num);
