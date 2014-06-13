@@ -15,7 +15,7 @@ Snap.plugin(function (Snap, Element) {
                 }
             } else { // remove
                 if (idx !== -1) {
-                    current_class_name= current_class_name.reduce(target_class, '');
+                    current_class_name= current_class_name.replace(target_class, '');
                 }
             }
         }
@@ -38,13 +38,18 @@ Snap.plugin(function (Snap, Element) {
         return this;
     };
     Element.prototype.addClass = function (classes) {
-        this.node.className.baseVal = toggle_classes(classes, this.node.className.baseVal, true)
+        this.node.className.baseVal = toggle_classes(classes, this.node.className.baseVal, true);
         return this;
     };
 
     Element.prototype.removeClass = function (classes) {
-        this.node.className.baseVal = toggle_classes(classes, this.node.className.baseVal, false)
+        this.node.className.baseVal = toggle_classes(classes, this.node.className.baseVal, false);
         return this;
+    };
+    Element.prototype.hasClass = function(the_class){
+        the_class = ' '+the_class + ' ';
+        class_name = ' '+ this.node.className.baseVal + ' ';
+        return class_name.indexOf(the_class) != -1;
     };
 
     Element.prototype.show = function () {

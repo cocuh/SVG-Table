@@ -14,6 +14,7 @@ This library includes plugins for snap.svg. Those plugins add following methods.
 - Element.show()
 - Element.hide()
 - Element.toggle(toggle)
+- Element.hasClass(toggle)
 
 ### snap.svg-css.js
 - Element.css(key[, value])
