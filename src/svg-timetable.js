@@ -18,6 +18,7 @@ SVGTimetable = function (root_width, root_height, i_options) {
         ] // list(list(int)) : week_times[week_of_day]
         , times: null // list(int) : 2340 -> 23:40, separated time list
         , times_is_minutes: false// bool : if true, times set 540 as AM 9:00,
+        , cell_hook: null
     };
 
     var SVGNS = 'http://www.w3.org/2000/svg';
@@ -29,7 +30,10 @@ SVGTimetable = function (root_width, root_height, i_options) {
         cell: 'svg_cell',
         table: 'svg_table',
         row_name: 'row_name',
-        column_name: 'column_name'
+        column_name: 'column_name',
+        holiday: 'holiday',
+        sunday: 'sunday',
+        saturday: 'saturday'
     };
 
     // extend args d:jquery
@@ -149,6 +153,17 @@ SVGTimetable = function (root_width, root_height, i_options) {
         cell_elem.data('date', args.dates[col]);
         cell_elem.data('start_time', times[col][row]);
         cell_elem.data('end_time', times[col][row + 1]);
+        if (cell_elem.data('date').getDay() == 0) {
+            cell_elem.addClass(CLASSES.holiday);
+            cell_elem.addClass(CLASSES.sunday);
+        }
+        if (cell_elem.data('date').getDay() == 6) {
+            cell_elem.addClass(CLASSES.holiday);
+            cell_elem.addClass(CLASSES.saturday);
+        }
+        if(args.cell_hook !== null){
+            args.cell_hook(cell_elem);
+        }
     };
 
 
