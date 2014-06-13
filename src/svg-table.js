@@ -20,18 +20,18 @@ SVGTable = function (root_width, root_height, i_options) {
 
         //--- names
         // column names
-        , column_name_list: null // iter(str) or list(str) or null : column_num
+        , column_names: null // iter(str) or list(str) or null : column_num
         , column_name_height: 0// int
         , column_name_text_transform: '' // string
         , column_name_widths: null //
         // row names
-        , row_name_list: null // iter(str) or list(str) or null : row-num
+        , row_names: null // iter(str) or list(str) or null : row-num
         , row_name_text_offset: [0, 0] // (int, int) : (offsetX, offsetY)
         , row_name_text_transform: '' // string
         , row_name_width: 0//
         , row_name_heights: null // 
-        , horizontal_scale_list: null //list(int) : the int is absolute y position regardless of cell_height_is_ratio
-        , vertical_scale_list: null //list(int) : the int is absolute y position regardless of cell_height_is_ratio
+//        , horizontal_scales: null //list(int) : the int is absolute y position regardless of cell_height_is_ratio
+//        , vertical_scales: null //list(int) : the int is absolute y position regardless of cell_height_is_ratio
         , select_mode: 'horizontal' //string : 
 
         //-- advance
@@ -185,7 +185,7 @@ SVGTable = function (root_width, root_height, i_options) {
     // generate names
     this.names_root = that.svg_root.g();
 
-    if (args.column_name_list !== null && args.row_name_list !== null) {
+    if (args.column_names !== null && args.row_names !== null) {
         (function () {
             var cell_root = that.names_root.g()
                     .addClass(CLASSES.table).addClass(CLASSES.cell)
@@ -195,19 +195,19 @@ SVGTable = function (root_width, root_height, i_options) {
     }
     // generate row_name d:snap.svg
     this.row_name_cells = new Array(this.row);
-    if (args.row_name_list !== null) {
+    if (args.row_names !== null) {
         (function () {
             var row_names_root = that.names_root.g();
             var w = args.row_name_width;
             var offsetY = args.column_name_height;
-            for (var y = 0; y < args.row_name_list.length; y++) {
+            for (var y = 0; y < args.row_names.length; y++) {
                 var cell_root = row_names_root.g()
                         .addClass(CLASSES.table).addClass(CLASSES.row_name).addClass(CLASSES.cell)
                     ;
                 cell_root.transform('translate(0,' + offsetY + ')');
                 that.row_name_cells[y] = cell_root;
-                var text = args.row_name_list[y];
-                var h = args.row_name_heights === null ? ((root_height - args.column_name_height) / args.row_name_list.length) : args.row_name_heights[y];
+                var text = args.row_names[y];
+                var h = args.row_name_heights === null ? ((root_height - args.column_name_height) / args.row_names.length) : args.row_name_heights[y];
                 cell_root.rect(0, 0, w, h);
                 var transform_value = args.row_name_text_transform
                         .replace('${width}', w).replace('${height}', h) // ISSUE#1
@@ -222,20 +222,20 @@ SVGTable = function (root_width, root_height, i_options) {
 
     // generate column_name 
     this.column_name_cells = null;
-    if (args.column_name_list !== null) {
-        this.column_name_cells = new Array(args.column_name_list.length);
+    if (args.column_names !== null) {
+        this.column_name_cells = new Array(args.column_names.length);
         (function () {
             var column_names_root = that.names_root.g();
             var h = args.column_name_height;
             var offsetX = args.row_name_width;
-            for (var col = 0; col < args.column_name_list.length; col++) {
+            for (var col = 0; col < args.column_names.length; col++) {
                 var cell_root = column_names_root.g()
                         .addClass(CLASSES.table).addClass(CLASSES.column_name).addClass(CLASSES.cell)
                     ;
                 cell_root.transform('translate(' + offsetX + ',0)');
                 that.column_name_cells[col] = cell_root;
-                var text = args.column_name_list[col];
-                var w = args.column_name_widths === null ? ((root_width - args.row_name_width) / args.column_name_list.length) : args.column_name_widths[col];
+                var text = args.column_names[col];
+                var w = args.column_name_widths === null ? ((root_width - args.row_name_width) / args.column_names.length) : args.column_name_widths[col];
                 cell_root.rect(0, 0, w, h);
                 var transform_value = args.column_name_text_transform
                         .replace('${width}', w).replace('${height}', h) // ISSUE#1
@@ -301,11 +301,11 @@ SVGTable = function (root_width, root_height, i_options) {
 
 
         var offsetX, offsetY, h, w, text, col_root, cell_root;
-        offsetX = args.row_name_list === null ? 0 : args.row_name_width;
+        offsetX = args.row_names === null ? 0 : args.row_name_width;
         var column_num = args.column_num === null ? args.column_widths.length : args.column_num
         for (var col = 0; col < column_num; col++) {
             var row_num = args.row_num === null ? (args.row_heights === null ? args.cell_heights[col].length : args.row_heights.length) : args.row_num;
-            offsetY = args.column_name_list === null ? 0 : args.column_name_height;
+            offsetY = args.column_names === null ? 0 : args.column_name_height;
             w = get_width(col);
             that.cells[col] = new Array(row_num);
             that.texts[col] = new Array(row_num);
@@ -318,11 +318,11 @@ SVGTable = function (root_width, root_height, i_options) {
                     .mousedown(handler).mouseover(handler).mouseup(handler);
                 that.cells[col][row] = cell_root;
                 h = get_height(col, row);
-                text = (function(){
-                    if(args.cell_texts === null){
+                text = (function () {
+                    if (args.cell_texts === null) {
                         return "";
                     }
-                    if(args.cell_texts_is_row_col){
+                    if (args.cell_texts_is_row_col) {
                         return args.cell_texts[row][col];
                     }
                     return args.cell_texts[col][row];
