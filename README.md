@@ -18,3 +18,4 @@ This library includes plugins for snap.svg. Those plugins add following methods.
 
 ### snap.svg-css.js
 - Element.css(key[, value])
+- Element.disableUserSelect(key[, value])
