@@ -24,12 +24,14 @@ SVGTable = function (root_width, root_height, i_options) {
         , column_name_height: 0// int
         , column_name_text_transform: '' // string
         , column_name_widths: null //
+        , column_name_widths_is_ratio: false //
         // row names
         , row_names: null // iter(str) or list(str) or null : row-num
         , row_name_text_offset: [0, 0] // (int, int) : (offsetX, offsetY)
         , row_name_text_transform: '' // string
         , row_name_width: 0//
         , row_name_heights: null // 
+        , row_name_heights_is_ratio: false // 
 //        , horizontal_scales: null //list(int) : the int is absolute y position regardless of cell_height_is_ratio
 //        , vertical_scales: null //list(int) : the int is absolute y position regardless of cell_height_is_ratio
         , select_mode: 'horizontal' //string : 
@@ -259,7 +261,18 @@ SVGTable = function (root_width, root_height, i_options) {
                 cell_root.transform('translate(' + offsetX + ',0)');
                 that.column_name_cells[col] = cell_root;
                 var text = args.column_names[col];
-                var w = args.column_name_widths === null ? ((root_width - args.row_name_width) / args.column_names.length) : args.column_name_widths[col];
+                var w = (function () {
+                    if (args.column_name_widths === null) {
+                        return ((root_width - args.row_name_width) / args.column_names.length);
+                    }
+                    if (args.column_name_widths_is_ratio) {
+                        return  args.column_name_widths[col] * (root_width - args.row_name_width) / args.column_name_widths.reduce(function (prev, next) {
+                            return prev + next;
+                        })
+                    } else {
+                        return args.column_name_widths[col];
+                    }
+                })();
                 cell_root.rect(0, 0, w, h);
                 var transform_value = args.column_name_text_transform
                         .replace('${width}', w).replace('${height}', h) // ISSUE#1
@@ -278,17 +291,24 @@ SVGTable = function (root_width, root_height, i_options) {
     this.cells = new Array(args.column_num || args.column_widths.length);
     this.texts = new Array(this.cells.length);
     (function () {
-        var get_width = args.column_num === null ?
-            function (col) {
-                return args.column_widths_is_ratio
-                    ? args.column_widths[col] * root_width / args.column_widths.reduce(function (p, n) {
-                    return p + n;
-                })
-                    : args.column_widths[col];
-            } :
-            function (col) {
-                return (root_width - args.row_name_width) / args.column_num;
-            };
+        var get_width = (function () {
+            if (args.column_widths === null) {
+                return function (col) {
+                    return ((root_width - args.row_name_width) / args.column_names.length);
+                }
+            }
+            if (args.column_widths_is_ratio) {
+                return  function (col) {
+                    return args.column_widths[col] * (root_width - args.row_name_width) / args.column_widths.reduce(function (prev, next) {
+                        return prev + next;
+                    })
+                }
+            } else {
+                return function (col) {
+                    return args.column_widths[col]
+                };
+            }
+        })();
         var get_height = (function () {
             if (args.row_num !== null) {
                 return function (col, row) {
