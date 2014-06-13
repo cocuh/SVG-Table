@@ -3,8 +3,9 @@ SVGTable = function (root_width, root_height, i_options) {
     // - selecting : selecting
     // - 
     var DEFAULTS = {
-        cell_text: null // list(list(str))
-        , cell_text_offset: [10, 23]
+        cell_text: null // list(list(str))[col][row]
+        , cell_text_is_row_col: false // set true if cell_text list(list(str))[row][col]
+        , cell_text_offset: [10, 23] //
         //--- rows
         , row_num: null // int : if cell_heights is not null, equal divide
         , row_heights: null // list(int) : active when row_num is null
@@ -220,8 +221,9 @@ SVGTable = function (root_width, root_height, i_options) {
 
 
     // generate column_name 
-    this.column_name_cells = new Array(this.row);
+    this.column_name_cells = null;
     if (args.column_name_list !== null) {
+        this.column_name_cells = new Array(args.column_name_list.length);
         (function () {
             var column_names_root = that.names_root.g();
             var h = args.column_name_height;
@@ -248,8 +250,8 @@ SVGTable = function (root_width, root_height, i_options) {
 
     // generate cells
     this.cells_root = this.svg_root.group();
-    this.cells = new Array(this.row_num);
-    this.texts = new Array(this.row_num);
+    this.cells = new Array(args.column_num || args.column_widths.length);
+    this.texts = new Array(this.cells.length);
     (function () {
         var get_width = args.column_num === null ?
             function (col) {
@@ -302,7 +304,7 @@ SVGTable = function (root_width, root_height, i_options) {
         offsetX = args.row_name_list === null ? 0 : args.row_name_width;
         var column_num = args.column_num === null ? args.column_widths.length : args.column_num
         for (var col = 0; col < column_num; col++) {
-            var row_num = args.row_num === null ? (args.row_heights===null? args.cell_heights[col].length:args.row_heights.length) : args.row_num;
+            var row_num = args.row_num === null ? (args.row_heights === null ? args.cell_heights[col].length : args.row_heights.length) : args.row_num;
             offsetY = args.column_name_list === null ? 0 : args.column_name_height;
             w = get_width(col);
             that.cells[col] = new Array(row_num);
@@ -316,13 +318,21 @@ SVGTable = function (root_width, root_height, i_options) {
                     .mousedown(handler).mouseover(handler).mouseup(handler);
                 that.cells[col][row] = cell_root;
                 h = get_height(col, row);
-                text = args.cell_text === null ? "" : args.cell_text[col][row];
+                text = (function(){
+                    if(args.cell_text === null){
+                        return "";
+                    }
+                    if(args.cell_text_is_row_col){
+                        return args.cell_text[row][col];
+                    }
+                    return args.cell_text[col][row];
+                })
                 cell_root.rect(offsetX, offsetY, w, h);
                 var text_offsetX = args.cell_text_offset === null ? 0 : args.cell_text_offset[0],
                     text_offsetY = args.cell_text_offset === null ? 0 : args.cell_text_offset[1];
                 that.texts[col][row] = cell_root.text(offsetX + text_offsetX, offsetY + text_offsetY, text)
                     .disableUserSelect();
-                if(args.cell_hook !== null){
+                if (args.cell_hook !== null) {
                     args.cell_hook(cell_root);
                 }
                 offsetY += h;
@@ -333,4 +343,7 @@ SVGTable = function (root_width, root_height, i_options) {
 };
 SVGTable.prototype.get_root_elem = function () {
     return this.table_root.get(0);
+};
+SVGTable.prototype.get_active_cells = function () {
+
 };
