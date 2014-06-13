@@ -337,7 +337,11 @@ SVGTable = function (root_width, root_height, i_options) {
                     if (args.cell_texts_is_row_col) {
                         return args.cell_texts[row][col];
                     }
-                    return args.cell_texts[col][row];
+                    if(args.cell_texts[col] === undefined){
+                        return ""
+                    }else{
+                        return args.cell_texts[col][row];
+                    }
                 })();
                 cell_root.rect(0, 0, w, h);
                 that.texts[col][row] = cell_root.text(0, 0, text)
