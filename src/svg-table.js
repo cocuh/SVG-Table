@@ -54,14 +54,13 @@ SVGTable = function (root_width, root_height, i_options) {
 
     var SELECT_MODE_DICT = {  // select mode dictionary
         'rectangle': function (cell, col, row, status) {
-            var min_col = Math.min(status.start_col, status.end_col);
-            var max_col = Math.max(status.start_col, status.end_col);
-            var min_row = Math.min(status.start_row, status.end_row);
-            var max_row = Math.max(status.start_row, status.end_row);
+            var c_minY = cell.data('top');
+            var c_minX = cell.data('left');
             return (
-                (min_col <= col && col <= max_col) &&
-                (min_row <= row && row <= max_row)
-                )
+                (status.col_minX <= c_minX && c_minX < status.col_maxX)
+                &&
+                (status.col_minY <= c_minY && c_minY < status.col_maxY)
+                );
         },
         'horizontal': function (cell, col, row, status) {
             var column_num = args.column_num === null ? args.column_widths.length : args.column_num;
@@ -92,13 +91,13 @@ SVGTable = function (root_width, root_height, i_options) {
     $.extend(true, CLASSES, args.CLASSES);
     $.extend(true, SELECT_MODE_DICT, args.SELECT_MODE_DICT);
     this.options = args;
-    
-    if(args.row_num === null && args.row_heights === null && args.cell_heights === null){
+
+    if (args.row_num === null && args.row_heights === null && args.cell_heights === null) {
         throw "row length is not defined, add option (row_num or row_heights or cell_heights)"
-    } 
-    if(args.column_num === null && args.column_widths === null){
+    }
+    if (args.column_num === null && args.column_widths === null) {
         throw "column length is not defined, add option (column_num or column_width)"
-    } 
+    }
 
 
     // init root object d:jquery
@@ -107,7 +106,7 @@ SVGTable = function (root_width, root_height, i_options) {
 
     // init svg_root d:snap.svg
     this.svg_root = Snap(document.createElementNS(SVGNS, 'svg'));
-    this.svg_root.attr({'width': root_width, 'height': root_height, 'class': 'svg_table'});
+    this.svg_root.attr({'width': root_width, 'height': root_height, 'class': 'svg_table', 'viewBox': '0 0 ' + root_width + ' ' + root_height});
     this.table_root.append(this.svg_root.node);
 
 
@@ -149,21 +148,34 @@ SVGTable = function (root_width, root_height, i_options) {
         start_col: 0, end_col: 0,
         start_row: 0, end_row: 0,
         startX: 0, endX: 0,
-        startY: 0, endY: 0
+        startY: 0, endY: 0,
+        minX: 0, maxX: 0,
+        minY: 0, maxY: 0,
     };
     var event_handler_factory = function (ix, iy) {
         return function (event) {
             var save_status_start = function () {
                 status.start_col = ix;
                 status.start_row = iy;
-                status.startX = event.clientX;
-                status.startY = event.clientY;
             };
             var save_status_end = function () {
                 status.end_col = ix;
                 status.end_row = iy;
-                status.endX = event.clientX;
-                status.endY = event.clientY;
+
+                var start_col_top = that.cells[status.start_col][status.start_row].data('top');
+                var end_col_top = that.cells[status.end_col][status.end_row].data('top');
+                status.col_minY = Math.min(start_col_top, end_col_top);
+                status.col_maxY = Math.max(
+                        start_col_top + that.cells[status.start_col][status.start_row].data('height'),
+                        end_col_top + that.cells[status.end_col][status.end_row].data('height')
+                );
+                var start_col_left = that.cells[status.start_col][status.start_row].data('left');
+                var end_col_left = that.cells[status.end_col][status.end_row].data('left');
+                status.col_minX = Math.min(start_col_left, end_col_left);
+                status.col_maxX = Math.max(
+                        start_col_left + that.cells[status.start_col][status.start_row].data('width'),
+                        end_col_left + that.cells[status.end_col][status.end_row].data('width')
+                );
             };
             switch (event.type) {
                 case 'mousedown':
@@ -172,9 +184,9 @@ SVGTable = function (root_width, root_height, i_options) {
                     actions.toggle_class(CLASSES.selecting, status, true);
                     break;
                 case 'mouseover':
-                    save_status_end();
                     actions.clear_selecting();
                     if (event.buttons != 0 && event.which % 2 != 0) {
+                        save_status_end();
                         actions.toggle_class(CLASSES.selecting, status, true);
                     }
                     break;
@@ -223,7 +235,8 @@ SVGTable = function (root_width, root_height, i_options) {
                 var transform_value = args.row_name_text_transform
                         .replace('${width}', w).replace('${height}', h) // ISSUE#1
                     ;
-                cell_root.text(0, 0, text).attr('transform', transform_value)
+                cell_root.text(0, 0, text)
+                    .transform(transform_value)
                     .disableUserSelect();
                 offsetY += h;
             }
@@ -251,7 +264,8 @@ SVGTable = function (root_width, root_height, i_options) {
                 var transform_value = args.column_name_text_transform
                         .replace('${width}', w).replace('${height}', h) // ISSUE#1
                     ;
-                cell_root.text(0, 0, text).attr('transform', transform_value)
+                cell_root.text(0, 0, text)
+                    .attr('transform', transform_value)
                     .disableUserSelect();
                 offsetX += w;
             }
@@ -283,11 +297,12 @@ SVGTable = function (root_width, root_height, i_options) {
             }
             if (args.row_heights !== null) { // args.row_heights is active
                 if (args.row_heights_is_ratio) {
+                    var height_sum = args.row_heights.reduce(function (p, n) {
+                        return p + n
+                    });
                     return function (col, row) {
-                        var height_sum = args.row_heights.reduce(function (p, n) {
-                            return p + n
-                        });
-                        return args.row_heights[row] * (root_height - args.column_name_height) / height_sum;
+                        var ratio = args.row_heights[row] * (root_height - args.column_name_height) / height_sum
+                        return Math.round(ratio);
                     }
                 } else {
                     return function (col, row) {
@@ -300,7 +315,8 @@ SVGTable = function (root_width, root_height, i_options) {
                         var height_sum = args.cell_heights[col].reduce(function (p, n) {
                             return p + n
                         });
-                        return args.cell_heights[col][row] * (root_height - args.column_name_height) / height_sum;
+                        var ratio = args.cell_heights[col][row] * (root_height - args.column_name_height) / height_sum
+                        return Math.round(ratio);
                     }
                 } else {
                     return function (col, row) {
@@ -320,16 +336,19 @@ SVGTable = function (root_width, root_height, i_options) {
             w = get_width(col);
             that.cells[col] = new Array(row_num);
             that.texts[col] = new Array(row_num);
-            col_root = that.cells_root.group().transform('translate(' + offsetX + ')');
+            col_root = that.cells_root.group()
+                .transform('translate(' + offsetX + ')');
             for (var row = 0; row < row_num; row++) {
                 var handler = event_handler_factory(col, row);
+                h = get_height(col, row);
                 cell_root = col_root.group()
                     .addClass(CLASSES.table).addClass(CLASSES.cell)
                     .transform('translate(0,' + offsetY + ')')
                     .data('col', col).data('row', row)
+                    .data('left', offsetX).data('top', offsetY)
+                    .data('width', w).data('height', h)
                     .mousedown(handler).mouseover(handler).mouseup(handler);
                 that.cells[col][row] = cell_root;
-                h = get_height(col, row);
                 text = (function () {
                     if (args.cell_texts === null) {
                         return "";
@@ -337,9 +356,9 @@ SVGTable = function (root_width, root_height, i_options) {
                     if (args.cell_texts_is_row_col) {
                         return args.cell_texts[row][col];
                     }
-                    if(args.cell_texts[col] === undefined){
+                    if (args.cell_texts[col] === undefined) {
                         return ""
-                    }else{
+                    } else {
                         return args.cell_texts[col][row];
                     }
                 })();
@@ -355,8 +374,8 @@ SVGTable = function (root_width, root_height, i_options) {
             offsetX += w;
         }
     })();
-    
-    
+
+
     this.get_active_cells = function () {
         var active_cells = [];
         for (var col = 0; col < this.cells.length; col++) {
