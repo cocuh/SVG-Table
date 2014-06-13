@@ -5,7 +5,7 @@ SVGTable = function (root_width, root_height, i_options) {
     var DEFAULTS = {
         cell_texts: null // list(list(str))[col][row]
         , cell_texts_is_row_col: false // set true if cell_texts list(list(str))[row][col]
-        , cell_text_offset: [10, 23] //
+        , cell_text_transform: 'translate(10,23)'
         //--- rows
         , row_num: null // int : if cell_heights is not null, equal divide
         , row_heights: null // list(int) : active when row_num is null
@@ -309,11 +309,12 @@ SVGTable = function (root_width, root_height, i_options) {
             w = get_width(col);
             that.cells[col] = new Array(row_num);
             that.texts[col] = new Array(row_num);
-            col_root = that.cells_root.group();
+            col_root = that.cells_root.group().transform('translate('+offsetX+')');
             for (var row = 0; row < row_num; row++) {
                 var handler = event_handler_factory(col, row);
                 cell_root = col_root.group()
                     .addClass(CLASSES.table).addClass(CLASSES.cell)
+                    .transform('translate(0,'+offsetY+')')
                     .data('col', col).data('row', row)
                     .mousedown(handler).mouseover(handler).mouseup(handler);
                 that.cells[col][row] = cell_root;
@@ -327,10 +328,9 @@ SVGTable = function (root_width, root_height, i_options) {
                     }
                     return args.cell_texts[col][row];
                 })();
-                cell_root.rect(offsetX, offsetY, w, h);
-                var text_offsetX = args.cell_text_offset === null ? 0 : args.cell_text_offset[0],
-                    text_offsetY = args.cell_text_offset === null ? 0 : args.cell_text_offset[1];
-                that.texts[col][row] = cell_root.text(offsetX + text_offsetX, offsetY + text_offsetY, text)
+                cell_root.rect(0, 0, w, h);
+                that.texts[col][row] = cell_root.text(0, 0, text)
+                    .transform(args.cell_text_transform)
                     .disableUserSelect();
                 if (args.cell_hook !== null) {
                     args.cell_hook(cell_root);
