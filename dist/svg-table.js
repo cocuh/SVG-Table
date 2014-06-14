@@ -659,7 +659,7 @@ SVGCalendar = function (root_width, root_height, i_options) {
             cell_texts[row] = new Array(7);
             for(var col=0;col<7;col++){
                 if((row==0&&col==0) || ptr_date.getDate()==1){
-                    cell_texts[row][col] = ""+ptr_date.getMonth()+"/"+ptr_date.getDate();
+                    cell_texts[row][col] = ""+(ptr_date.getMonth()+1)+"/"+ptr_date.getDate();
                 }else{
                     cell_texts[row][col] = ""+ptr_date.getDate();
                 }
@@ -683,7 +683,7 @@ SVGCalendar = function (root_width, root_height, i_options) {
         
         cell_elem.data('date', date);
         
-        cell_elem.addClass([CLASSES.even_month,CLASSES.odd_month][date.getMonth()%2]);
+        cell_elem.addClass([CLASSES.even_month,CLASSES.odd_month][(date.getMonth()+1)%2]);
         if(date.getDay()==6 ||date.getDay()==0){
             cell_elem.addClass(CLASSES.holiday);
         }
@@ -720,7 +720,7 @@ SVGCalendar.prototype.get_active_dates = function(){
     var active_cells = this.table.get_active_cells();
     var active_dates = [];
     for(var i=active_cells.length;i--;){
-        var date = new Date(active_cells[i].data('time'));
+        var date = new Date(active_cells[i].data('date').getTime());
         active_dates.push(date)
     }
     return active_dates;
