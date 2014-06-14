@@ -1,7 +1,10 @@
 Snap.plugin(function (Snap, Element) {
     var spliters = /[\r\n\f\s]+/;
     var split_classes = function (classes) {
-        return classes.trim().split(spliters);
+        if(classes){
+            return classes.trim().split(spliters);
+        }
+        return [];
     };
     var toggle_classes = function (classes, current_class_name, is_add) {
         var target_class_list = split_classes(classes);
