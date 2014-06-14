@@ -136,6 +136,7 @@ SVGTable = function (root_width, root_height, i_options) {
         //-- advance
         , CLASSES: {} // css classes
         , SELECT_MODE_DICT: {} // (function (cell, col, row, status) -> bool)[str]
+        , SIGNIFICANT_FIGURE: 1 // int
         , select_cell: null // func : is_active_cell(cell, col, row, status)
     };
     var SVGNS = 'http://www.w3.org/2000/svg';
@@ -176,7 +177,6 @@ SVGTable = function (root_width, root_height, i_options) {
         }
     };
 
-
     // extend args d:jquery
     var args = (function () {
         var options = $.extend(true, {}, DEFAULTS);
@@ -196,6 +196,17 @@ SVGTable = function (root_width, root_height, i_options) {
     if (args.column_num === null && args.column_widths === null) {
         throw "column length is not defined, add option (column_num or column_width)"
     }
+
+    //significant figure
+    that.CLASSES = CLASSES;
+    that.SELECT_MODE_DICT = SELECT_MODE_DICT;
+    var SIGNIFICANT_FIGURE = args.SIGNIFICANT_FIGURE;
+    var _round = function (value) {
+        if(SIGNIFICANT_FIGURE === null){
+            return value;
+        }
+        return Math.round(value * SIGNIFICANT_FIGURE) / SIGNIFICANT_FIGURE;
+    };
 
 
     // init root object d:jquery
@@ -248,7 +259,7 @@ SVGTable = function (root_width, root_height, i_options) {
         startX: 0, endX: 0,
         startY: 0, endY: 0,
         minX: 0, maxX: 0,
-        minY: 0, maxY: 0,
+        minY: 0, maxY: 0
     };
     var event_handler_factory = function (ix, iy) {
         return function (event) {
@@ -323,12 +334,24 @@ SVGTable = function (root_width, root_height, i_options) {
             var offsetY = args.column_name_height;
             for (var row = 0; row < args.row_names.length; row++) {
                 var cell_root = row_names_root.g()
-                        .addClass(CLASSES.table).addClass(CLASSES.row_name).addClass(CLASSES.cell)
-                        .data('row', row);
+                    .addClass(CLASSES.table).addClass(CLASSES.row_name).addClass(CLASSES.cell)
+                    .data('row', row);
                 cell_root.transform('translate(0,' + offsetY + ')');
                 that.row_name_cells[row] = cell_root;
                 var text = args.row_names[row];
-                var h = args.row_name_heights === null ? ((root_height - args.column_name_height) / args.row_names.length) : args.row_name_heights[row];
+                var h = (function () {
+                    if (args.row_name_heights === null) {
+                        return _round(((root_height - args.column_name_height) / args.row_names.length))
+                    }
+                    if (args.row_name_heights_is_ratio) {
+                        var sum_height = args.row_name_heights.reduce(function (p, n) {
+                            return p + n
+                        });
+                        return _round(args.row_name_heights[row] * (root_height - args.column_name_height) / sum_height);
+                    } else {
+                        return args.row_name_heights[row]
+                    }
+                })();
                 cell_root.rect(0, 0, w, h);
                 var transform_value = args.row_name_text_transform
                         .replace('${width}', w).replace('${height}', h) // ISSUE#1
@@ -337,7 +360,7 @@ SVGTable = function (root_width, root_height, i_options) {
                     .transform(transform_value)
                     .disableUserSelect();
                 if (args.row_name_hook !== null) {
-                    args.row_name_hook(cell_root);
+                    args.row_name_hook(cell_root, that);
                 }
                 offsetY += h;
             }
@@ -380,7 +403,7 @@ SVGTable = function (root_width, root_height, i_options) {
                     .attr('transform', transform_value)
                     .disableUserSelect();
                 if (args.column_name_hook !== null) {
-                    args.column_name_hook(cell_root)
+                    args.column_name_hook(cell_root, that)
                 }
                 offsetX += w;
             }
@@ -423,8 +446,8 @@ SVGTable = function (root_width, root_height, i_options) {
                         return p + n
                     });
                     return function (col, row) {
-                        var ratio = args.row_heights[row] * (root_height - args.column_name_height) / height_sum
-                        return Math.round(ratio);
+                        var value = args.row_heights[row] * (root_height - args.column_name_height) / height_sum
+                        return _round(value);
                     }
                 } else {
                     return function (col, row) {
@@ -437,8 +460,8 @@ SVGTable = function (root_width, root_height, i_options) {
                         var height_sum = args.cell_heights[col].reduce(function (p, n) {
                             return p + n
                         });
-                        var ratio = args.cell_heights[col][row] * (root_height - args.column_name_height) / height_sum
-                        return Math.round(ratio);
+                        var value = args.cell_heights[col][row] * (root_height - args.column_name_height) / height_sum
+                        return _round(value);
                     }
                 } else {
                     return function (col, row) {
@@ -489,7 +512,7 @@ SVGTable = function (root_width, root_height, i_options) {
                     .transform(args.cell_text_transform)
                     .disableUserSelect();
                 if (args.cell_hook !== null) {
-                    args.cell_hook(cell_root);
+                    args.cell_hook(cell_root, that);
                 }
                 offsetY += h;
             }
@@ -696,22 +719,16 @@ SVGTimetable = function (root_width, root_height, i_options) {
         //---requires
         dates: null // list(Date) : not use hours, minutes, seconds.
         , start_date: new Date() // Date : not use hours, minutes, seconds.
-        , day_num: 10 // int : day num
+        , day_num: 7 // int : day num
 
         //--- times
         , detail_times: null // list(list(int)) : 
-        , week_times: [
-            [1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000, 2100, 2200, 2300],
-            [ 840, 955, 1010, 1125, 1215, 1330, 1345, 1500, 1515, 1630, 1645, 1800, 1900, 2000, 2100, 2200, 2300],
-            [ 840, 955, 1010, 1125, 1215, 1330, 1345, 1500, 1515, 1630, 1645, 1800, 1900, 2000, 2100, 2200, 2300],
-            [ 840, 955, 1010, 1125, 1215, 1330, 1345, 1500, 1515, 1630, 1645, 1800, 1900, 2000, 2100, 2200, 2300],
-            [ 840, 955, 1010, 1125, 1215, 1330, 1345, 1500, 1515, 1630, 1645, 1800, 1900, 2000, 2100, 2200, 2300],
-            [ 840, 955, 1010, 1125, 1215, 1330, 1345, 1500, 1515, 1630, 1645, 1800, 1900, 2000, 2100, 2200, 2300],
-            [1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000, 2100, 2200, 2300],
-        ] // list(list(int)) : week_times[week_of_day]
-        , times: null // list(int) : 2340 -> 23:40, separated time list
+        , week_times: null // list(list(int)) : week_times[week_of_day]
+        , times: [1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000, 2100, 2200, 2300]
+          // list(int) : 2340 -> 23:40, separated time list
         , times_is_minutes: false// bool : if true, times set 540 as AM 9:00,
-        , cell_hook: null
+        , cell_hook: null//
+        ,CLASSES:{}
     };
 
     var SVGNS = 'http://www.w3.org/2000/svg';
@@ -735,9 +752,11 @@ SVGTimetable = function (root_width, root_height, i_options) {
         $.extend(true, options, i_options);
         return options;
     })();
+    
 
     // args
     $.extend(true, CLASSES, args.CLASSES);
+    that.CLASSES = CLASSES;
     this.options = args;
 
     if (args.times === null && args.week_times === null && args.detail_times === null) {
@@ -763,9 +782,9 @@ SVGTimetable = function (root_width, root_height, i_options) {
     var times = new Array(args.dates.length);
     (function () {
         var get_times = (function () { // function(idx,date) -> list(int) : times
-            if (args.times !== null) {
+            if (args.detail_times !== null) {
                 return function (idx, date) {
-                    return args.times
+                    return args.detail_times[idx]
                 }
             }
             if (args.week_times !== null) {
@@ -773,9 +792,9 @@ SVGTimetable = function (root_width, root_height, i_options) {
                     return args.week_times[date.getDay()]
                 }
             }
-            if (args.detail_times !== null) {
+            if (args.times !== null) {
                 return function (idx, date) {
-                    return args.detail_times[idx]
+                    return args.times
                 }
             }
         })();
@@ -843,6 +862,7 @@ SVGTimetable = function (root_width, root_height, i_options) {
     var cell_hook = function (cell_elem) {
         var col = cell_elem.data('col');
         var row = cell_elem.data('row');
+        
         cell_elem.data('date', args.dates[col]);
         cell_elem.data('start_time', times[col][row]);
         cell_elem.data('end_time', times[col][row + 1]);
@@ -855,7 +875,7 @@ SVGTimetable = function (root_width, root_height, i_options) {
             cell_elem.addClass(CLASSES.saturday);
         }
         if(args.cell_hook !== null){
-            args.cell_hook(cell_elem);
+            args.cell_hook(cell_elem, that);
         }
     };
 
@@ -871,6 +891,9 @@ SVGTimetable = function (root_width, root_height, i_options) {
         cell_hook: cell_hook,
         select_mode: 'rectangle'
     };
+    
+    // over write
+    $.extend(true, table_options, args.table_options);
 
     // init table
     this.table = new SVGTable(root_width, root_height, table_options);

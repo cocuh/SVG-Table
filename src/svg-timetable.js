@@ -3,22 +3,16 @@ SVGTimetable = function (root_width, root_height, i_options) {
         //---requires
         dates: null // list(Date) : not use hours, minutes, seconds.
         , start_date: new Date() // Date : not use hours, minutes, seconds.
-        , day_num: 10 // int : day num
+        , day_num: 7 // int : day num
 
         //--- times
         , detail_times: null // list(list(int)) : 
-        , week_times: [
-            [1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000, 2100, 2200, 2300],
-            [ 840, 955, 1010, 1125, 1215, 1330, 1345, 1500, 1515, 1630, 1645, 1800, 1900, 2000, 2100, 2200, 2300],
-            [ 840, 955, 1010, 1125, 1215, 1330, 1345, 1500, 1515, 1630, 1645, 1800, 1900, 2000, 2100, 2200, 2300],
-            [ 840, 955, 1010, 1125, 1215, 1330, 1345, 1500, 1515, 1630, 1645, 1800, 1900, 2000, 2100, 2200, 2300],
-            [ 840, 955, 1010, 1125, 1215, 1330, 1345, 1500, 1515, 1630, 1645, 1800, 1900, 2000, 2100, 2200, 2300],
-            [ 840, 955, 1010, 1125, 1215, 1330, 1345, 1500, 1515, 1630, 1645, 1800, 1900, 2000, 2100, 2200, 2300],
-            [1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000, 2100, 2200, 2300],
-        ] // list(list(int)) : week_times[week_of_day]
-        , times: null // list(int) : 2340 -> 23:40, separated time list
+        , week_times: null // list(list(int)) : week_times[week_of_day]
+        , times: [1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000, 2100, 2200, 2300]
+          // list(int) : 2340 -> 23:40, separated time list
         , times_is_minutes: false// bool : if true, times set 540 as AM 9:00,
-        , cell_hook: null
+        , cell_hook: null//
+        ,CLASSES:{}
     };
 
     var SVGNS = 'http://www.w3.org/2000/svg';
@@ -42,9 +36,11 @@ SVGTimetable = function (root_width, root_height, i_options) {
         $.extend(true, options, i_options);
         return options;
     })();
+    
 
     // args
     $.extend(true, CLASSES, args.CLASSES);
+    that.CLASSES = CLASSES;
     this.options = args;
 
     if (args.times === null && args.week_times === null && args.detail_times === null) {
@@ -70,9 +66,9 @@ SVGTimetable = function (root_width, root_height, i_options) {
     var times = new Array(args.dates.length);
     (function () {
         var get_times = (function () { // function(idx,date) -> list(int) : times
-            if (args.times !== null) {
+            if (args.detail_times !== null) {
                 return function (idx, date) {
-                    return args.times
+                    return args.detail_times[idx]
                 }
             }
             if (args.week_times !== null) {
@@ -80,9 +76,9 @@ SVGTimetable = function (root_width, root_height, i_options) {
                     return args.week_times[date.getDay()]
                 }
             }
-            if (args.detail_times !== null) {
+            if (args.times !== null) {
                 return function (idx, date) {
-                    return args.detail_times[idx]
+                    return args.times
                 }
             }
         })();
@@ -150,6 +146,7 @@ SVGTimetable = function (root_width, root_height, i_options) {
     var cell_hook = function (cell_elem) {
         var col = cell_elem.data('col');
         var row = cell_elem.data('row');
+        
         cell_elem.data('date', args.dates[col]);
         cell_elem.data('start_time', times[col][row]);
         cell_elem.data('end_time', times[col][row + 1]);
@@ -162,7 +159,7 @@ SVGTimetable = function (root_width, root_height, i_options) {
             cell_elem.addClass(CLASSES.saturday);
         }
         if(args.cell_hook !== null){
-            args.cell_hook(cell_elem);
+            args.cell_hook(cell_elem, that);
         }
     };
 
@@ -178,6 +175,9 @@ SVGTimetable = function (root_width, root_height, i_options) {
         cell_hook: cell_hook,
         select_mode: 'rectangle'
     };
+    
+    // over write
+    $.extend(true, table_options, args.table_options);
 
     // init table
     this.table = new SVGTable(root_width, root_height, table_options);
