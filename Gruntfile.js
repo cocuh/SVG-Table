@@ -9,7 +9,13 @@ module.exports = function (grunt) {
                 banner: banner
             },
             files: {
-                src: 'src/*.js',
+                src: [
+                    'src/snap.svg-css.js',
+                    'src/snap.svg-toggle.js',
+                    'src/svg-table.js',
+                    'src/svg-calendar.js',
+                    'src/svg-timetable.js',
+                ],
                 dest: 'dist/svg-table.js'
             }
         },
