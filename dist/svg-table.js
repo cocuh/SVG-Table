@@ -1,3 +1,7 @@
+// SVG-Table 1.0.0
+// author: cocu
+// license: Apache v2
+// https://github.com/cocu/SVG-Table
 Snap.plugin(function (Snap, Element) {
     Element.prototype.css = function (key, value) {
         if (value !== undefined) {
