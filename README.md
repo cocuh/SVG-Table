@@ -4,7 +4,7 @@ SVG-Table
 responsive dynamic svg table generator, with snap.svg and jquery.
 
 # Demo
-[2014.typowriter.org/SVG-Table/](2014.typowriter.org/SVG-Table/)
+[2014.typowriter.org/SVG-Table/](http://2014.typowriter.org/SVG-Table/)
 
 # requirements
 I tested following versions.
