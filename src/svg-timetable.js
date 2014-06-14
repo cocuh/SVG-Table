@@ -27,7 +27,8 @@ SVGTimetable = function (root_width, root_height, i_options) {
         column_name: 'column_name',
         holiday: 'holiday',
         sunday: 'sunday',
-        saturday: 'saturday'
+        saturday: 'saturday',
+        disabled:'disabled'
     };
 
     // extend args d:jquery

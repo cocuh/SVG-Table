@@ -148,6 +148,7 @@ SVGTable = function (root_width, root_height, i_options) {
     var CLASSES = {
         selecting: 'selecting',
         active: 'active',
+        disabled: 'disabled',
         cell: 'svg_cell',
         table: 'svg_table',
         row_name: 'row_name',
@@ -201,11 +202,11 @@ SVGTable = function (root_width, root_height, i_options) {
     }
 
     //significant figure
-    that.CLASSES = CLASSES;
-    that.SELECT_MODE_DICT = SELECT_MODE_DICT;
+    this.CLASSES = CLASSES;
+    this.SELECT_MODE_DICT = SELECT_MODE_DICT;
     var SIGNIFICANT_FIGURE = args.SIGNIFICANT_FIGURE;
     var _round = function (value) {
-        if(SIGNIFICANT_FIGURE === null){
+        if (SIGNIFICANT_FIGURE === null) {
             return value;
         }
         return Math.round(value * SIGNIFICANT_FIGURE) / SIGNIFICANT_FIGURE;
@@ -239,7 +240,7 @@ SVGTable = function (root_width, root_height, i_options) {
     };
     this.set_select_mode(args.select_mode);
 
-    actions.toggle_class = function (class_name, status, is_add) {
+    actions.toggle_class = function (class_name, status, no_disabled, is_add) {
         if (is_add === undefined) {
             is_add = !that.cells[status.start_col][status.start_row].hasClass(class_name);
         }
@@ -248,7 +249,9 @@ SVGTable = function (root_width, root_height, i_options) {
             for (row = that.cells[col].length; row--;) {
                 var flag = _is_in_select(that.cells[col][row], col, row, status);
                 if (flag) {
-                    that.cells[col][row].toggleClass(class_name, is_add);
+                    if (!(no_disabled && that.cells[col][row].hasClass(CLASSES.disabled))) {
+                        that.cells[col][row].toggleClass(class_name, is_add);
+                    }
                 }
             }
         }
@@ -293,19 +296,19 @@ SVGTable = function (root_width, root_height, i_options) {
                 case 'mousedown':
                     save_status_start();
                     save_status_end();
-                    actions.toggle_class(CLASSES.selecting, status, true);
+                    actions.toggle_class(CLASSES.selecting, status, false, true);
                     break;
                 case 'mouseover':
                     actions.clear_selecting();
                     if (event.buttons != 0 && event.which % 2 != 0) {
                         save_status_end();
-                        actions.toggle_class(CLASSES.selecting, status, true);
+                        actions.toggle_class(CLASSES.selecting, status, false, true);
                     }
                     break;
                 case 'mouseup':
                     save_status_end();
                     actions.clear_selecting();
-                    actions.toggle_class(CLASSES.active, status);
+                    actions.toggle_class(CLASSES.active, status, true);
                     break;
                 case 'mouseout':
                     actions.clear_selecting();
@@ -555,6 +558,7 @@ SVGCalendar = function (root_width, root_height, i_options) {
         //-- options
         , start_day: 'monday' // str or null : if null, calendar start today
         , table_options: {} // 
+        , cell_hook: null//
     };
     var SVGNS = 'http://www.w3.org/2000/svg';
     var that = this;
@@ -568,7 +572,8 @@ SVGCalendar = function (root_width, root_height, i_options) {
         column_name: 'column_name',
         even_month:'even_month',
         odd_month:'odd_month',
-        holiday: 'holiday'
+        holiday: 'holiday',
+        disabled:'disabled'
     };
 
 
@@ -672,15 +677,18 @@ SVGCalendar = function (root_width, root_height, i_options) {
         }
     })();
     
-    var cell_hook = function (cell_elem) {
+    var cell_hook = function (cell_elem, that_table) {
         var delta = cell_elem.data('row')*7+cell_elem.data('col');
         var date = new Date(table_start_date.getTime()+delta*24*60*60*1000);
         
-        cell_elem.data('date', date.getDate()).data('month', date.getMonth()).data('time',date.getTime());
+        cell_elem.data('date', date);
         
         cell_elem.addClass([CLASSES.even_month,CLASSES.odd_month][date.getMonth()%2]);
         if(date.getDay()==6 ||date.getDay()==0){
             cell_elem.addClass(CLASSES.holiday);
+        }
+        if(args.cell_hook !== null){
+            args.cell_hook(cell_elem, that_table)
         }
     };
 
@@ -746,7 +754,8 @@ SVGTimetable = function (root_width, root_height, i_options) {
         column_name: 'column_name',
         holiday: 'holiday',
         sunday: 'sunday',
-        saturday: 'saturday'
+        saturday: 'saturday',
+        disabled:'disabled'
     };
 
     // extend args d:jquery

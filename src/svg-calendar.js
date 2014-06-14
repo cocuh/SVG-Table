@@ -14,6 +14,7 @@ SVGCalendar = function (root_width, root_height, i_options) {
         //-- options
         , start_day: 'monday' // str or null : if null, calendar start today
         , table_options: {} // 
+        , cell_hook: null//
     };
     var SVGNS = 'http://www.w3.org/2000/svg';
     var that = this;
@@ -27,7 +28,8 @@ SVGCalendar = function (root_width, root_height, i_options) {
         column_name: 'column_name',
         even_month:'even_month',
         odd_month:'odd_month',
-        holiday: 'holiday'
+        holiday: 'holiday',
+        disabled:'disabled'
     };
 
 
@@ -131,15 +133,18 @@ SVGCalendar = function (root_width, root_height, i_options) {
         }
     })();
     
-    var cell_hook = function (cell_elem) {
+    var cell_hook = function (cell_elem, that_table) {
         var delta = cell_elem.data('row')*7+cell_elem.data('col');
         var date = new Date(table_start_date.getTime()+delta*24*60*60*1000);
         
-        cell_elem.data('date', date.getDate()).data('month', date.getMonth()).data('time',date.getTime());
+        cell_elem.data('date', date);
         
         cell_elem.addClass([CLASSES.even_month,CLASSES.odd_month][date.getMonth()%2]);
         if(date.getDay()==6 ||date.getDay()==0){
             cell_elem.addClass(CLASSES.holiday);
+        }
+        if(args.cell_hook !== null){
+            args.cell_hook(cell_elem, that_table)
         }
     };
 
