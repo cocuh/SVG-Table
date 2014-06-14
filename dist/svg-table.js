@@ -128,11 +128,15 @@ SVGTable = function (root_width, root_height, i_options) {
 //        , vertical_scales: null //list(int) : the int is absolute y position regardless of cell_height_is_ratio
         , select_mode: 'horizontal' //string : 
 
+        //-- hooks
+        , cell_hook: null // func : hook(cell_elem)
+        , column_name_hook: null // func : hook (cell_elem)
+        , row_name_hook: null // func : hook(cell_elem)
+
         //-- advance
         , CLASSES: {} // css classes
         , SELECT_MODE_DICT: {} // (function (cell, col, row, status) -> bool)[str]
         , select_cell: null // func : is_active_cell(cell, col, row, status)
-        , cell_hook: null // func : hook(cell_elem)
     };
     var SVGNS = 'http://www.w3.org/2000/svg';
     var that = this;
@@ -317,14 +321,14 @@ SVGTable = function (root_width, root_height, i_options) {
             var row_names_root = that.names_root.g();
             var w = args.row_name_width;
             var offsetY = args.column_name_height;
-            for (var y = 0; y < args.row_names.length; y++) {
+            for (var row = 0; row < args.row_names.length; row++) {
                 var cell_root = row_names_root.g()
                         .addClass(CLASSES.table).addClass(CLASSES.row_name).addClass(CLASSES.cell)
-                    ;
+                        .data('row', row);
                 cell_root.transform('translate(0,' + offsetY + ')');
-                that.row_name_cells[y] = cell_root;
-                var text = args.row_names[y];
-                var h = args.row_name_heights === null ? ((root_height - args.column_name_height) / args.row_names.length) : args.row_name_heights[y];
+                that.row_name_cells[row] = cell_root;
+                var text = args.row_names[row];
+                var h = args.row_name_heights === null ? ((root_height - args.column_name_height) / args.row_names.length) : args.row_name_heights[row];
                 cell_root.rect(0, 0, w, h);
                 var transform_value = args.row_name_text_transform
                         .replace('${width}', w).replace('${height}', h) // ISSUE#1
@@ -332,6 +336,9 @@ SVGTable = function (root_width, root_height, i_options) {
                 cell_root.text(0, 0, text)
                     .transform(transform_value)
                     .disableUserSelect();
+                if (args.row_name_hook !== null) {
+                    args.row_name_hook(cell_root);
+                }
                 offsetY += h;
             }
         })();
@@ -348,9 +355,9 @@ SVGTable = function (root_width, root_height, i_options) {
             var offsetX = args.row_name_width;
             for (var col = 0; col < args.column_names.length; col++) {
                 var cell_root = column_names_root.g()
-                        .addClass(CLASSES.table).addClass(CLASSES.column_name).addClass(CLASSES.cell)
-                    ;
-                cell_root.transform('translate(' + offsetX + ',0)');
+                    .addClass(CLASSES.table).addClass(CLASSES.column_name).addClass(CLASSES.cell)
+                    .data('col', col);
+                cell_root.transform('translate(' + offsetX + ',0)')
                 that.column_name_cells[col] = cell_root;
                 var text = args.column_names[col];
                 var w = (function () {
@@ -372,6 +379,9 @@ SVGTable = function (root_width, root_height, i_options) {
                 cell_root.text(0, 0, text)
                     .attr('transform', transform_value)
                     .disableUserSelect();
+                if (args.column_name_hook !== null) {
+                    args.column_name_hook(cell_root)
+                }
                 offsetX += w;
             }
         })();
@@ -518,6 +528,7 @@ SVGCalendar = function (root_width, root_height, i_options) {
 
         //-- options
         , start_day: 'monday' // str or null : if null, calendar start today
+        , table_options: {} // 
     };
     var SVGNS = 'http://www.w3.org/2000/svg';
     var that = this;
@@ -660,6 +671,9 @@ SVGCalendar = function (root_width, root_height, i_options) {
         select_mode:'horizontal',
         cell_hook: cell_hook
     };
+    
+    // over write
+    $.extend(true, table_options, args.table_options);
     
     // init table
     this.table = new SVGTable(root_width, root_height, table_options);

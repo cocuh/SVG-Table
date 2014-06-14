@@ -13,6 +13,7 @@ SVGCalendar = function (root_width, root_height, i_options) {
 
         //-- options
         , start_day: 'monday' // str or null : if null, calendar start today
+        , table_options: {} // 
     };
     var SVGNS = 'http://www.w3.org/2000/svg';
     var that = this;
@@ -155,6 +156,9 @@ SVGCalendar = function (root_width, root_height, i_options) {
         select_mode:'horizontal',
         cell_hook: cell_hook
     };
+    
+    // over write
+    $.extend(true, table_options, args.table_options);
     
     // init table
     this.table = new SVGTable(root_width, root_height, table_options);
