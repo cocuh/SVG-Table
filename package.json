@@ -1,0 +1,29 @@
+{
+  "name": "SVG-Table",
+  "version": "1.0.0",
+  "description": "responsive dynamic svg table generator, ",
+  "main": "./dist/svg-table-min.js",
+  "dependencies": {
+    "grunt-contrib-concat": "^0.4.0",
+    "grunt": "^0.4.5",
+    "grunt-contrib-uglify": "^0.5.0"
+  },
+  "devDependencies": {
+      "grunt":"*",
+      "grunt-contrib-uglify":"*",
+      "grunt-contrib-concat":"*"
+  },
+  "scripts": {
+    "test": "grunt watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cocu/SVG-Table"
+  },
+  "author": "cocu",
+  "license": "Apache v2",
+  "bugs": {
+    "url": "https://github.com/cocu/SVG-Table/issues"
+  },
+  "homepage": "https://github.com/cocu/SVG-Table"
+}
