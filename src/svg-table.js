@@ -61,6 +61,8 @@ SVGTable = function (root_width, root_height, i_options) {
     };
 
     var SELECT_MODE_DICT = {  // select mode dictionary
+        'none':function(){
+        },
         'rectangle': function (cell, col, row, status) {
             var c_minY = cell.data('top');
             var c_minX = cell.data('left');
