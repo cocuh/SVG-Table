@@ -189,22 +189,27 @@ SVGTimetable = function (root_width, root_height, i_options) {
 SVGTimetable.prototype.get_root_elem = function () {
     return this.table.get_root_elem();
 };
-SVGTimetable.prototlenght.get_active_times = function () {
+SVGTimetable.prototype.get_active_times = function () {
     var cells = this.table.get_active_cells();
     var res = {};
     for (var i = 0; i < cells.length; i++) {
         var cell = cells[i];
         var start_time = cell.data('start_time');
         var end_time = cell.data('end_time');
-        var date = cell.data('date')
-        if (res[date] === undefined) {
-            res[date] = [];
+        var date = new Date(cell.data('date').getTime());
+        date.setHours(0);
+        date.setMinutes(0);
+        date.setSeconds(0);
+        date.setMilliseconds(0);
+        var key = date.getTime();
+        if (res[key] === undefined) {
+            res[key] = [];
         }
-        var leng = res[date].length;
-        if (leng >= 1 && res[date][leng - 1][1] == start_time) {
-            res[date][leng - 1][1] = end_time;
+        var leng = res[key].length;
+        if (leng >= 1 && res[key][leng - 1][1] == start_time) {
+            res[key][leng - 1][1] = end_time;
         } else {
-            res[date].push([start_time, end_time]);
+            res[key].push([start_time, end_time]);
         }
     }
     return res;
