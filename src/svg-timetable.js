@@ -9,12 +9,12 @@ SVGTimetable = function (root_width, root_height, i_options) {
         , detail_times: null // list(list(int)) : 
         , week_times: null // list(list(int)) : week_times[week_of_day]
         , times: [1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000, 2100, 2200, 2300]
-          // list(int) : 2340 -> 23:40, separated time list
+        // list(int) : 2340 -> 23:40, separated time list
         , times_is_minutes: false// bool : if true, times set 540 as AM 9:00,
-        
+
         //-- advance
         , cell_hook: null//
-        ,CLASSES:{}
+        , CLASSES: {}
     };
 
     var SVGNS = 'http://www.w3.org/2000/svg';
@@ -30,7 +30,7 @@ SVGTimetable = function (root_width, root_height, i_options) {
         holiday: 'holiday',
         sunday: 'sunday',
         saturday: 'saturday',
-        disabled:'disabled'
+        disabled: 'disabled'
     };
 
     // extend args d:jquery
@@ -39,7 +39,7 @@ SVGTimetable = function (root_width, root_height, i_options) {
         $.extend(true, options, i_options);
         return options;
     })();
-    
+
 
     // args
     $.extend(true, CLASSES, args.CLASSES);
@@ -149,7 +149,7 @@ SVGTimetable = function (root_width, root_height, i_options) {
     var cell_hook = function (cell_elem) {
         var col = cell_elem.data('col');
         var row = cell_elem.data('row');
-        
+
         cell_elem.data('date', args.dates[col]);
         cell_elem.data('start_time', times[col][row]);
         cell_elem.data('end_time', times[col][row + 1]);
@@ -161,7 +161,7 @@ SVGTimetable = function (root_width, root_height, i_options) {
             cell_elem.addClass(CLASSES.holiday);
             cell_elem.addClass(CLASSES.saturday);
         }
-        if(args.cell_hook !== null){
+        if (args.cell_hook !== null) {
             args.cell_hook(cell_elem, that);
         }
     };
@@ -178,37 +178,34 @@ SVGTimetable = function (root_width, root_height, i_options) {
         cell_hook: cell_hook,
         select_mode: 'rectangle'
     };
-    
+
     // over write
     $.extend(true, table_options, args.table_options);
 
     // init table
     this.table = new SVGTable(root_width, root_height, table_options);
-
-
-    // method
-    this.get_active_times = function () {
-        var cells = that.table.get_active_cells();
-        var res = {};
-        for (var i = 0; i < cells.length; i++) {
-            var cell = cells[i];
-            var start_time = cell.data('start_time');
-            var end_time = cell.data('end_time');
-            var date = cell.data('date')
-            if (res[date] === undefined) {
-                res[date] = [];
-            }
-            var leng = res[date].length;
-            if (leng >= 1 && res[date][leng - 1][1] == start_time) {
-                res[date][leng - 1][1] = end_time;
-            } else {
-                res[date].push([start_time, end_time]);
-            }
-        }
-        return res;
-    };
 };
 
 SVGTimetable.prototype.get_root_elem = function () {
     return this.table.get_root_elem();
+};
+SVGTimetable.prototlenght.get_active_times = function () {
+    var cells = this.table.get_active_cells();
+    var res = {};
+    for (var i = 0; i < cells.length; i++) {
+        var cell = cells[i];
+        var start_time = cell.data('start_time');
+        var end_time = cell.data('end_time');
+        var date = cell.data('date')
+        if (res[date] === undefined) {
+            res[date] = [];
+        }
+        var leng = res[date].length;
+        if (leng >= 1 && res[date][leng - 1][1] == start_time) {
+            res[date][leng - 1][1] = end_time;
+        } else {
+            res[date].push([start_time, end_time]);
+        }
+    }
+    return res;
 };
