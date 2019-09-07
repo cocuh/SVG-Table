@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <style>
+        .svg_cell rect {
+            fill: rgb(255, 255, 255);
+            stroke: black;
+            stroke-width:0.8;
+        }
+        .svg_cell.odd_month rect{
+            fill:rgba(255,200,200,0.3)
+        }
+        .svg_cell.holiday rect{
+            fill:rgba(200,200,255,0.3)
+        }
+
+        .svg_cell text {
+            fill: black;
+            stroke: none;
+        }
+
+        .svg_cell.row_name text {
+            fill: red;
+        }
+
+        .active rect {
+            fill: rgba(255, 255, 0, 0.3)!important;
+        }
+
+        .selecting rect {
+            fill: rgba(255, 0, 0, 0.3)!important;
+        }
+    </style>
+</head>
+<body>
+	<h1>どらっぐしてみて</h1>
+	<h2><a href="https://github.com/cocu/SVG-Table">ぎっちょはぶ</a></h2>
+
+<script src="_tmp/jquery-2.1.1.min.js"></script>
+<script src="_tmp/snap.svg.js"></script>
+<script src="src/snap.svg-toggle.js"></script>
+<script src="src/snap.svg-css.js"></script>
+<script src="src/svg-table.js"></script>
+<script src="src/svg-calendar.js"></script>
+<script src="src/svg-timetable.js"></script>
+
+    <script>
+        table = new SVGTable(800, 300, {
+//            column_num: 4,
+//            row_num: 4,
+            cell_texts: [
+                [1, 0, 0, 0],
+                [2, 3, 4, 5],
+                [3, 4, 5, 6],
+                [4, 5, 6, 7]
+            ],
+//        row_heights: [100,100,100,200],
+//        row_heights_is_ratio: true,
+        column_widths: [100, 200, 200, 100],
+	column_widths_is_ratio:true,
+        cell_heights: [[200,100,100,100],[100,200,100,100],[100,100,200,100],[100,100,100,200]],
+	cell_heights_is_ratio:true,
+        select_mode: 'rectangle',
+        row_names: ['head1', 'head2', 'head3', 'head4'],
+        row_name_width: 30,
+            row_name_text_transform: 'rotate(-90) translate(-${height},${width})',
+            column_names: ['head1', 'head2', 'head3', 'head4'],
+        column_name_widths: [100, 200, 200, 100],
+        column_name_widths_is_ratio: true,
+	column_widths_is_ratio:true,
+	column_widths_is_ratio:true,
+            column_name_text_transform: 'translate(0,${height})',
+            column_name_height: 30
+        });
+        document.body.appendChild(table.get_root_elem())
+    </script>
+<script>
+    calendar = new SVGCalendar(800, 400);
+    document.body.appendChild(calendar.get_root_elem());
+</script>
+<script>
+    timetable = new SVGTimetable(800, 600);
+    document.body.appendChild(timetable.get_root_elem());
+</script>
+<script src="../ana.js"></script>
+</body>
+</html>
